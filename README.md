@@ -2,6 +2,113 @@
 
 OSCARv2 est une réimplémentation en Rust du système de simulation d'automates cellulaires OSCAR, avec un système d'affichage graphique intégré.
 
+## Qu'est-ce qu'OSCAR ?
+
+OSCAR (Outil de Simulation Comportemental par Attraction-Répulsion) est un simulateur multi-agents développé pour étudier les comportements sociaux complexes. Inspiré des systèmes multi-agents (SMA) utilisés en éthologie pour comprendre le comportement des insectes sociaux (fourmis, abeilles), OSCAR permet de modéliser des interactions simples qui donnent naissance à des comportements collectifs émergents.
+
+### Principe de base
+
+Depuis leur développement il y a près de 30 ans, les systèmes multi-agents ont prouvé leur efficacité pour simuler des phénomènes complexes à partir de règles simples. OSCAR applique ce principe en créant un monde virtuel où des **agents** autonomes évoluent selon des règles d'**attraction** et de **répulsion**.
+
+### Le modèle OSCAR
+
+Le simulateur repose sur un modèle comportemental simple mais puissant :
+
+#### 🌍 **Le Monde (WORLD)**
+
+- **Grille rectangulaire** : L'environnement de simulation
+- **Une case = Un agent maximum** : Chaque position ne peut contenir qu'un seul agent
+- **Évolution temporelle** : La simulation progresse pas à pas dans le temps
+
+#### 🤖 **Les Agents**
+
+Trois types d'agents coexistent dans le monde :
+
+1. **MINERAL** 🗿
+
+   - **Statique** : Ne bouge jamais
+   - **Inerte** : Ne se reproduit pas
+   - _Exemple : Rochers, obstacles_
+
+2. **VEGETAL** 🌱
+
+   - **Statique** : Ne bouge pas
+   - **Reproducteur** : Peut se reproduire sur les cases adjacentes
+   - _Exemple : Herbe, arbres_
+
+3. **ANIMAL** 🐛
+   - **Mobile** : Se déplace vers les cases adjacentes
+   - **Reproducteur** : Peut se reproduire
+   - _Exemple : Herbivores, prédateurs_
+
+#### 🎭 **Les États (STATUS)**
+
+Chaque agent possède un **état** qui détermine :
+
+- **Son apparence** : Couleur ou icône spécifique
+- **Son comportement** : Actions possibles selon l'état
+- **Ses transitions** : Changement d'état selon les conditions
+
+#### 📊 **Les Variables (VAR)**
+
+Chaque agent est caractérisé par des **paramètres numériques** :
+
+- **Énergie** : Détermine la survie de l'agent
+- **Santé** : Influence les capacités de l'agent
+- **Âge** : Peut déclencher des changements d'état
+- **Seuils critiques** : Valeurs qui déclenchent des transitions d'état
+
+#### ⚡ **Les Champs (FIELD)**
+
+Les agents peuvent **émettre des champs de potentiel** :
+
+- **Origine** : Valeur maximale à la position de l'agent
+- **Décroissance isotrope** : Diminution uniforme selon la distance
+- **Portée limitée** : Devient nul au-delà d'une certaine distance
+- **Superposition** : Les champs de même nom s'additionnent
+
+#### 📡 **Les Capteurs (SENSOR)**
+
+Les agents **perçoivent leur environnement** via des capteurs :
+
+- **Sensibilité variable** : Acuité plus ou moins forte
+- **Polarité** : Perception positive, neutre ou négative des champs
+- **Influence comportementale** : Guide les décisions de déplacement et reproduction
+
+#### 🧭 **Prise de Décision**
+
+Le comportement des agents suit une règle simple :
+
+- **Case la plus favorable** : L'agent choisit la case adjacente où la somme des champs perçus est maximale
+- **Calcul** : (Champs positifs) - (Champs négatifs)
+- **Applications** : Déplacement ET reproduction
+
+#### 🤝 **Interactions entre Agents**
+
+Quand deux agents sont adjacents :
+
+- **Absorption mutuelle** : Chaque agent absorbe les champs de l'autre
+- **Modification des paramètres** : Les variables des deux agents changent
+- **Conséquences** : Peut déclencher des changements d'état
+- _Exemple : Un herbivore mange une plante et gagne en énergie_
+
+#### ⚙️ **États Prédéfinis**
+
+Pour simplifier la configuration :
+
+- **`void`** : Case vide (suppression d'agent)
+- **`end`** : Arrêt de la simulation
+- **`trace`** : Marque laissée par un animal en déplacement
+
+### Format de Configuration
+
+La simulation se configure via un **fichier texte simple** :
+
+- **5 commandes** : `world`, `mineral`, `vegetal`, `animal`, `agent`
+- **Structure en blocs** : Séparés par des lignes vides
+- **Commentaires** : Précédés du symbole `#`
+- **Syntaxe flexible** : Mots-clés en gras, paramètres adaptables
+
 ## Fonctionnalités
 
 - **Parser DSL** : Lecture et analyse de fichiers de configuration au format OSCAR
@@ -176,33 +283,6 @@ cargo check
 # Mode verbose pour debug
 RUST_LOG=debug ./target/release/OSCARv2 --console-only
 ```
-
-## Comparaison Python vs Rust
-
-| Aspect          | Python OSCAR  | Rust OSCARv2        |
-| --------------- | ------------- | ------------------- |
-| **Performance** | ~100 FPS      | ~1000+ FPS          |
-| **Mémoire**     | ~50MB         | ~5MB                |
-| **Startup**     | ~2s           | ~0.1s               |
-| **Compilation** | Interprété    | Natif optimisé      |
-| **Dépendances** | ezTK, tkinter | minifb seulement    |
-| **Portabilité** | Python requis | Exécutable autonome |
-
-## Limitations actuelles
-
-- [ ] Reset de simulation non implémenté
-- [ ] Parsing DSL incomplet (sensors, fields complexes)
-- [ ] Pas de sauvegarde/chargement d'états
-- [ ] Interface utilisateur basique (pas de menus)
-
-## Roadmap
-
-- [ ] Parser DSL complet
-- [ ] Interface utilisateur avancée
-- [ ] Export de vidéos/images
-- [ ] Éditeur de niveaux intégré
-- [ ] Support WebAssembly pour le web
-- [ ] API REST pour contrôle externe
 
 ## Contribution
 
