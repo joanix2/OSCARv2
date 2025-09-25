@@ -122,9 +122,74 @@ pub fn parse_tokens(tokens: &[Token]) -> Result<ConfigAst> {
                 i += 1; // Skip for now
             }
             TokenKind::Ident(word) if word == "agent" => {
-                // agent definitions - add to agents list
-                // For now, just skip
-                i += 1;
+                // agent species_pattern position1 position2 ...
+                i += 1; // skip "agent"
+                
+                // Récupérer le pattern d'espèce (peut être un mot ou une expression avec parenthèses)
+                let species_pattern = if i < tokens.len() {
+                    match &tokens[i].kind {
+                        TokenKind::Ident(s) => {
+                            i += 1;
+                            s.clone()
+                        }
+                        _ => {
+                            // Ça pourrait être une expression complexe, pour l'instant on skip
+                            let mut pattern = String::new();
+                            while i < tokens.len() && !matches!(tokens[i].kind, TokenKind::Eol) {
+                                match &tokens[i].kind {
+                                    TokenKind::Ident(s) => pattern.push_str(s),
+                                    TokenKind::Symbol(s) => pattern.push_str(s),
+                                    TokenKind::Number(n) => pattern.push_str(&n.to_string()),
+                                    _ => break,
+                                }
+                                i += 1;
+                            }
+                            pattern
+                        }
+                    }
+                } else {
+                    continue;
+                };
+                
+                // Récupérer les positions
+                let mut positions = Vec::new();
+                while i < tokens.len() && !matches!(tokens[i].kind, TokenKind::Eol) {
+                    match &tokens[i].kind {
+                        TokenKind::Ident(s) => {
+                            positions.push(s.clone());
+                        }
+                        TokenKind::Symbol(s) if s == "(" => {
+                            // Construire une expression de position avec parenthèses
+                            let mut pos_expr = String::new();
+                            pos_expr.push('(');
+                            i += 1;
+                            
+                            while i < tokens.len() {
+                                match &tokens[i].kind {
+                                    TokenKind::Symbol(s) if s == ")" => {
+                                        pos_expr.push(')');
+                                        i += 1;
+                                        break;
+                                    }
+                                    TokenKind::Number(n) => pos_expr.push_str(&n.to_string()),
+                                    TokenKind::Symbol(s) => pos_expr.push_str(s),
+                                    TokenKind::Ident(s) => pos_expr.push_str(s),
+                                    _ => break,
+                                }
+                                i += 1;
+                            }
+                            positions.push(pos_expr);
+                            continue;
+                        }
+                        _ => {}
+                    }
+                    i += 1;
+                }
+                
+                config.agents.push(AgentDef {
+                    species_pattern,
+                    positions,
+                });
             }
             TokenKind::Ident(_) => {
                 // Unknown identifier, skip it
