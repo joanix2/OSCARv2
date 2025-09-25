@@ -1,0 +1,37 @@
+# -----------------------------------------------------------------------------
+# Segregation : Shelling's model of segregation
+#   http://nifty.stanford.edu/2014/mccown-schelling-model-segregation
+#
+# Description :
+# - Segregation is based on 2-state animal agents : 'red' and 'blue'
+# - 'red' agents generate a 'red' field on the 8 neighboring cells
+# - 'blue' agents generate a 'blue' field on the 8 neighboring cells
+# - 'red' agents move to cells with maximal 'red' and minimal 'blue' fields
+# - 'blue' agents move to cells with maximal 'blue' and minimal 'red' fields
+# - stronger/weaker segregation is observed when changing sensitivity values
+# - stronger/weaker segregation is observed when changing field distance
+# -----------------------------------------------------------------------------
+
+world 32 32 FFF           # use a 32x32 grid and white color for void cells
+
+animal red F00            # use red color for 'red' agents
+var red 2                 # shortcut for "var red 2 0"
+field red -1              # 'red' field is limited to 8 neighboring cells
+var comfort               # shortcut for "var comfort 0 0"
+sensor comfort red 0.7    # 'comfort' is increased by 'red' field'
+sensor comfort blue -0.3  # 'comfort' is decreased by 'blue' field'
+
+animal blue 00F           # use blue color for 'blue' agents
+var blue 2                # shortcut for "var blue 2 0"
+field blue -1             # 'blue' field is limited to 8 neighboring cells
+var comfort               # shortcut for "var comfort 0 0"
+sensor comfort red -0.3   # 'comfort' is decreased by 'red' field'
+sensor comfort blue 0.7   # 'comfort' is increased by 'blue' field'
+
+# -----------------------------------------------------------------------------
+# initial configuration : uniform probability between 'void', 'red' and 'blue'
+# -----------------------------------------------------------------------------
+
+agent (void,red,blue) (0:32,0:32) # same generation rule on whole grid
+
+# -----------------------------------------------------------------------------

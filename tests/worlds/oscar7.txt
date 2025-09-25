@@ -1,0 +1,47 @@
+# -----------------------------------------------------------------------------
+# StellarFormation : Simulation de la formation et interaction d'étoiles
+#
+# Description :
+# - Basé sur des agents 'gaz', 'proto-étoile', 'étoile' et 'supernova'.
+# - Les 'gaz' se condensent pour former des 'proto-étoiles' lorsqu'ils sont
+#   entourés de densité suffisante.
+# - Les 'proto-étoiles' deviennent des 'étoiles' après plusieurs cycles.
+# - Les 'étoiles' explosent en 'supernova' après avoir atteint une durée de vie.
+# - Les 'supernova' diffusent de l'énergie qui détruit les 'gaz' voisins.
+# -----------------------------------------------------------------------------
+
+world 40 40 000            # grille 40x40 avec un fond noir
+
+vegetal gaz 00C            # bleu clair pour les nuages de gaz
+var densité 3              # chaque agent 'gaz' contient 3 unités de densité
+field densité -1           # champ de densité limité à distance 5
+var gravité                # gravité perçue à partir de densité
+sensor gravité densité 1   # 'gravité' augmentée par densité locale
+status gravité > 10 proto  # 'gaz' -> 'proto-étoile' si gravité > 10
+
+animal proto FFA           # jaune pâle pour les proto-étoiles
+var cycle 5 -1             # devient une étoile après 5 cycles
+status cycle < 1 étoile    # 'proto-étoile' -> 'étoile'
+
+animal étoile FF0          # jaune vif pour les étoiles
+var durée 20 -1            # durée de vie d'une étoile
+status durée < 1 supernova # 'étoile' -> 'supernova' à la fin de sa vie
+
+animal supernova F00        # rouge vif pour les supernovae
+var énergie 10             # énergie libérée par l'explosion
+field énergie -2           # champ d'énergie diffusé à distance 10
+status énergie < 1 vide    # disparaît une fois l'énergie dissipée
+
+mineral vide 000           # noir pour le vide (état final des agents détruits)
+
+# -----------------------------------------------------------------------------
+# Configuration initiale : plusieurs nuages de gaz et proto-étoiles
+# -----------------------------------------------------------------------------
+
+# Nuages de gaz dans différentes régions
+agent gaz (5:15,5:15) (25:35,25:35) (10:30,10:15)
+
+# Proto-étoiles éparpillées
+agent proto (20,20) (35,5) (5,35)
+
+# -----------------------------------------------------------------------------

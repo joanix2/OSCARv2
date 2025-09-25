@@ -1,0 +1,38 @@
+# -----------------------------------------------------------------------------
+# LifeGame : Conway's Game of Life
+#   http://en.wikipedia.org/wiki/Conway's_Game_of_Life
+#
+# Description :
+# - LifeGame is based on 2-state mineral agents : 'live' and 'dead'
+# - 'live' agents generate a 'life' field on their 8 neighboring cells
+# - 'dead' and 'live' agents have a 'neighbor' sensor for this 'life' field
+# -----------------------------------------------------------------------------
+
+world 16 16 FFF            # use a 16x16 grid and white color for void cells
+
+mineral dead FFF           # use white color for 'dead' agents
+var neighbor               # shortcut for "var neighbor 0 0"
+status neighbor < 3 dead   # these three status lines mean that
+status neighbor < 4 live   # 'dead' -> 'live' only when 'neighbor' == 3
+status neighbor > 3 dead   # 
+sensor neighbor life 1     # 'life' field scaled by 1 and stored in 'neighbor'
+
+mineral live 000           # use black color for 'live' agents
+var life 2                 # shortcut for "var life 2 0"
+var neighbor               # shortcut for "var neighbor 0 0"
+status neighbor < 2 dead   # these three status lines mean that
+status neighbor < 4 live   # 'live' -> 'live' only when 'neighbor' in (2,3)
+status neighbor > 3 dead   #
+field life -1              # generate 'life' field on neighboring cells
+sensor neighbor life 1     # 'life' field scaled by 1 and stored in 'neighbor'
+
+# -----------------------------------------------------------------------------
+# initial configuration : pentadecathlon oscillator (period 15)
+# -----------------------------------------------------------------------------
+
+agent dead (0:16,0:16)
+# agent live (7,5) (9,5) (7,10) (9,10) (8,3) (8,4)
+# agent live (8,6) (8,7) (8,8) (8,9) (8,11) (8,12)
+agent live (7:10:2,5:11:5) (8,3:5) (8,6:10) (8,11:13) # alternative version
+
+# -----------------------------------------------------------------------------

@@ -1,0 +1,40 @@
+# -----------------------------------------------------------------------------
+# PhotoTropism : Growth of plants with photophilia or photophobia behaviors
+#
+# Description :
+# - PhotoTropism is based on a 1 mineral agent and 2 different vegetal agents
+# - 'light' agent generates a standard distance field also called 'light'
+# - 'photophilia' agents put their seeds in cells with maximum light field
+# - 'photophobia' agents put their seeds in cells with minimum light field
+# - with the rules given below, each 'photophilia' agent generates only one
+#   seed, whereas 'photophobia' agent generates a new seed each 2 time steps
+# -----------------------------------------------------------------------------
+
+world 32 32 FFF              # use a 32x32 grid and white color for void cells
+
+mineral sun FF0              # use yellow color for 'sun' agents
+var light 99                 # 'light' field starts at value 99
+field light -1               # and broadcasts up to distance 99
+
+vegetal photophilia 0F0      # use light green color for 'photophilia' agents
+var seed 4 -1                # photophilia germination requires 4 time steps 
+birth seed < 1 photophilia   # germination when seed < 1
+var photo                    # shortcut for "var photo 0 0"
+sensor photo light 1         # 'photo' stores 'light' field sensor (positive)
+
+vegetal photophobia 060      # use dark green color for 'photophobia' agents
+var seed 2 -1                # photophobia germination requires 2 time steps
+birth seed < 1 photophobia   # germination when seed < 1
+status seed < 1 photophobia  # reset photophobia status to generate next seed
+var photo                    # shortcut for "var photo 0 0"
+sensor photo light -1        # 'photo' stores 'light' field sensor (negative)
+
+# -----------------------------------------------------------------------------
+# initial configuration : 1 light, 4 photophilia and 4 photophobia seeds
+# -----------------------------------------------------------------------------
+
+agent sun (0,16)
+agent photophilia (31,0) (31,11) (31,20) (31,31)
+agent photophobia (31,10) (31,15) (31,16) (31,21)
+
+# -----------------------------------------------------------------------------

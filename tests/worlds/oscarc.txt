@@ -1,0 +1,39 @@
+# -----------------------------------------------------------------------------
+# GridTransformation : Transformation des cellules en deux types de bleu
+#
+# Description :
+# - Une cellule "bleu clair" devient "bleu foncé" si elle est dans la position
+#   en bas à droite d'un carré 2x2 de cellules "bleu clair".
+# - Toutes les autres cellules "bleu clair" restent inchangées.
+# -----------------------------------------------------------------------------
+
+world 7 7 000              # Grille 7x7 avec des cellules noires (vides)
+
+# Définition des couleurs
+mineral light_blue 0CF     # Bleu clair
+mineral dark_blue 00F      # Bleu foncé
+mineral void 000           # Noir pour les cellules vides
+
+# Variables pour détecter les voisins
+var neighbors_light        # Nombre de voisins bleu clair
+sensor neighbors_light light_blue 1  # Détecte les cellules bleu clair
+
+# Règles de transition pour les cellules bleu clair
+status neighbors_light == 3 dark_blue  # Devient bleu foncé si dans un carré 2x2
+status neighbors_light != 3 light_blue # Reste bleu clair sinon
+
+# Règles pour les cellules vides (elles ne changent pas)
+status void void           # Les cellules noires restent noires
+
+# -----------------------------------------------------------------------------
+# Configuration initiale
+# -----------------------------------------------------------------------------
+
+agent void (0:7,0:7)       # Grille initiale entièrement noire
+
+# Placement des cellules bleu clair
+agent light_blue (1,1) (1,2) (2,1) (2,2) # Exemple 1 : carré bleu clair
+agent light_blue (3,3) (3,4) (4,3) (4,4) # Exemple 2 : autre carré bleu clair
+
+# -----------------------------------------------------------------------------
+

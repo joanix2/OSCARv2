@@ -1,0 +1,43 @@
+# -----------------------------------------------------------------------------
+# Sugarscape : Simplified implementation of the Sugarscape system
+#   https://en.wikipedia.org/wiki/Sugarscape
+#
+# Description :
+# - Sugarscape is based on 1 vegetal agent and 2-state animal agents
+# - 'grass' agents grow by germination every 3 time steps
+# - 'sheep' agents start with 40 'grass' points and loose 1 point per time step
+# - 'sheep' agents have random movements as long as they are not 'hungry'
+# - 'hungry' agents move on neighboring cell with maximal 'grass' field
+# - 'hungry' agents absorb all 'grass' agents they met
+# - 'hungry' agents go back to 'sheep' state when they absorbed enough 'grass'
+# -----------------------------------------------------------------------------
+
+world 32 32 FFF            # use a 32x32 grid and white color for void cells
+
+vegetal grass 0C0          # use green color for 'grass' agents
+var grass 5                # each 'grass' agent contains 5 grass units
+field grass -1             # 'grass' field broadcasts up to distance 5
+status grass < 1 void      # 'grass' agent disapears when eated by a 'sheep'
+var seed 40 -1              # 'grass' germination requires 3 time steps
+birth seed < 1 grass       # germination when seed < 1
+
+animal sheep FF5           # use beige color for 'sheep' agents
+var grass 40 -1            # sheep starts with 40 initial 'grass' points
+status grass < 25 hungry   # sheep becomes hungry when 'grass' < 25Z
+
+animal hungry F50          # use orange color for 'hungry' agents
+var grass grass -1         # keep previous value of 'grass' variable
+var smell                  # shorcut for "var smell 0 0"
+sensor smell grass 1       # hungry sheep tries to find grass
+status grass < 1 void      # hungry dies when 'grass' < 1
+status grass < 2 trace     # create a trace before dying
+status grass > 40 sheep    # back to 'sheep' state when 'grass' > 40
+
+# -----------------------------------------------------------------------------
+# initial configuration : 4 blocks of grass and 2 lines of sheep
+# -----------------------------------------------------------------------------
+
+agent grass (0:4,0:4) (0:4,28:32) (28:32,0:4) (28:32,28:32)
+agent sheep (8,14:18) (24,14:18)
+
+# -----------------------------------------------------------------------------
