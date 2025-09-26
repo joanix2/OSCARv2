@@ -86,9 +86,9 @@ pub fn blend_colors(color1: u32, color2: u32, ratio: f32) -> u32 {
     let g2 = ((color2 >> 8) & 0xFF) as f32;
     let b2 = (color2 & 0xFF) as f32;
     
-    let r = (r1 * inv_ratio + r2 * ratio) as u32;
-    let g = (g1 * inv_ratio + g2 * ratio) as u32;
-    let b = (b1 * inv_ratio + b2 * ratio) as u32;
+    let r = (r1 * inv_ratio + r2 * ratio).round() as u32;
+    let g = (g1 * inv_ratio + g2 * ratio).round() as u32;
+    let b = (b1 * inv_ratio + b2 * ratio).round() as u32;
     
     (r << 16) | (g << 8) | b
 }

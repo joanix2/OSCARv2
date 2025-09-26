@@ -17,13 +17,18 @@ pub fn parse_tokens(tokens: &[Token]) -> Result<ConfigAst> {
         match &tokens[i].kind {
             TokenKind::Ident(word) if word == "world" => {
                 // world cols rows color
-                if let (TokenKind::Number(cols), TokenKind::Number(rows), TokenKind::Ident(color)) =
-                    (&tokens[i+1].kind, &tokens[i+2].kind, &tokens[i+3].kind)
+                if let (Some(TokenKind::Number(cols)), Some(TokenKind::Number(rows)), Some(color_token)) =
+                    (tokens.get(i+1).map(|t| &t.kind), tokens.get(i+2).map(|t| &t.kind), tokens.get(i+3).map(|t| &t.kind))
                 {
+                    let color = match color_token {
+                        TokenKind::Ident(c) => c.clone(),
+                        TokenKind::Number(n) => format!("{:X}", n), // Convert to uppercase hex like species parsing does
+                        _ => return Err(anyhow!("Expected color identifier or number at line {}", tokens[i].line)),
+                    };
                     config.world = Some(World {
                         cols: *cols as usize,
                         rows: *rows as usize,
-                        color: color.clone(),
+                        color,
                     });
                     i += 4;
                 } else {
