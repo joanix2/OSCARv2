@@ -41,13 +41,16 @@ impl Field {
         if var_value <= 0 {
             return;
         }
-        let step = self.def.step;
+        let step = self.def.step.abs().max(1);
         let delta = ((var_value as f32) / (step as f32)).ceil() as i32;
         let r0 = pos.row as i32;
         let c0 = pos.col as i32;
 
         for dr in -delta..=delta {
             for dc in -delta..=delta {
+                if dr == 0 && dc == 0 {
+                    continue;
+                }
                 let rr = r0 + dr;
                 let cc = c0 + dc;
                 if rr < 0 || cc < 0 || rr >= self.rows as i32 || cc >= self.cols as i32 {
