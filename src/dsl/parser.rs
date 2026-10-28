@@ -191,7 +191,9 @@ pub fn parse_tokens(tokens: &[Token]) -> Result<ConfigAst> {
                     .get(1)
                     .ok_or_else(|| anyhow!("Expected name after species"))?;
                 let name = match &name_token.kind {
-                    TokenKind::Ident(name) if !looks_like_color(name_token) => name.clone(),
+                    TokenKind::Ident(name) if line.len() >= 3 || !looks_like_color(name_token) => {
+                        name.clone()
+                    }
                     _ => return Err(anyhow!("Expected name after species")),
                 };
                 let color = line

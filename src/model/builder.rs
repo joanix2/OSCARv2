@@ -2,7 +2,7 @@ use crate::dsl::ast::*;
 use crate::model::agent::{Agent, AgentId, SpeciesKind};
 use crate::model::position::Position;
 use crate::model::world::World;
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::collections::HashMap;
 
 /// Structure pour construire le monde à partir de la configuration DSL
@@ -80,7 +80,9 @@ impl WorldBuilder {
 
     /// Ajoute un agent à une position donnée
     pub fn add_agent(&mut self, species_name: &str, pos: Position) -> Result<AgentId> {
-        let species_info = self.species_map.get(species_name)
+        let species_info = self
+            .species_map
+            .get(species_name)
             .ok_or_else(|| anyhow!("Species '{}' not found", species_name))?
             .clone();
 
@@ -109,28 +111,6 @@ impl WorldBuilder {
         self.world.set_agent(pos, Some(agent_id));
 
         Ok(agent_id)
-    }
-
-    /// Ajoute des agents en grille selon un pattern
-    pub fn add_agents_pattern(&mut self, species_name: &str, pattern: &str, bounds: (usize, usize, usize, usize)) -> Result<()> {
-        let (row_start, row_end, col_start, col_end) = bounds;
-        
-        // Parse le pattern (simplifié pour l'exemple)
-        let pattern_parts: Vec<&str> = pattern.trim_matches(['(', ')']).split(',').collect();
-        
-        for row in row_start..=row_end {
-            for col in col_start..=col_end {
-                // Pour l'instant, logique simple: si le pattern contient le nom de l'espèce, on place
-                if pattern_parts.iter().any(|&p| p.trim() == species_name) {
-                    let pos = Position::new(row, col);
-                    if self.world.in_bounds(pos) {
-                        self.add_agent(species_name, pos)?;
-                    }
-                }
-            }
-        }
-        
-        Ok(())
     }
 
     /// Place des agents selon les définitions dans l'AST
@@ -222,7 +202,7 @@ impl WorldBuilder {
         let index = (rand::random::<f32>() * entries.len() as f32) as usize;
         let name = entries[index.min(entries.len() - 1)];
 
-        if name == "void" && !self.species_map.contains_key(name) {
+        if name == "void" {
             return None;
         }
 
@@ -268,22 +248,16 @@ pub(crate) fn parse_color(color_str: &str) -> Result<u32> {
         "magenta" => Ok(0xFF00FF),
         _ => {
             // Essayer de parser comme hex (avec ou sans #)
-            let hex_str = if color_str.starts_with('#') {
-                &color_str[1..]
-            } else {
-                color_str
-            };
-            
+            let hex_str = color_str.strip_prefix('#').unwrap_or(color_str);
+
             // Pad avec des zéros si nécessaire
             let padded = if hex_str.len() == 3 {
                 // RGB -> RRGGBB
-                hex_str.chars()
-                    .map(|c| format!("{}{}", c, c))
-                    .collect::<String>()
+                hex_str.chars().flat_map(|c| [c, c]).collect::<String>()
             } else {
                 hex_str.to_string()
             };
-            
+
             u32::from_str_radix(&padded, 16)
                 .map_err(|_| anyhow!("Invalid color format: {}", color_str))
         }
