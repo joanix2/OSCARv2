@@ -17,11 +17,11 @@ pub struct Agent {
     pub id: AgentId,
     pub pos: Position,
     pub species: SpeciesKind,
-    pub species_id: usize,    // index dans la liste des espèces
-    pub status: String,       // nom du statut courant (ex: "alive", "dead")
-    pub color: u32,           // couleur (ARGB ou RGB packed)
-    pub vars: Vec<i32>,       // variables numériques
-    pub alive: bool,          // actif dans le monde ?
+    pub species_id: usize, // index dans la liste des espèces
+    pub status: String,    // nom du statut courant (ex: "alive", "dead")
+    pub color: u32,        // couleur (ARGB ou RGB packed)
+    pub vars: Vec<i32>,    // variables numériques
+    pub alive: bool,       // actif dans le monde ?
 }
 
 impl Agent {

@@ -85,8 +85,8 @@ pub struct Species {
 
 #[derive(Debug)]
 pub struct AgentDef {
-    pub species_pattern: String,  // ex: "(void,tree,void,tree)" ou "rock" ou "fire"
-    pub positions: Vec<String>,   // ex: ["(0:64,0:64)", "(5,5)", "(60,60)", "(30,15)"]
+    pub species_pattern: String, // ex: "(void,tree,void,tree)" ou "rock" ou "fire"
+    pub positions: Vec<String>,  // ex: ["(0:64,0:64)", "(5,5)", "(60,60)", "(30,15)"]
 }
 
 #[derive(Debug)]
