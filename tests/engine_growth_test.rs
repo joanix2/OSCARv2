@@ -84,3 +84,26 @@ fn photophobia_grows_away_from_the_light() {
         && agent.pos.row == 6
         && agent.pos.col != 3));
 }
+
+#[test]
+fn animal_stays_when_no_neighbor_improves() {
+    let input = r"
+        world 5 5 FFF
+        animal lone F00
+        var attract 2
+        field attract -1
+        var comfort
+        sensor comfort attract 1
+        agent lone (2,2)
+    ";
+
+    let engine = simulate(input, 5);
+    let agent = engine
+        .world
+        .agents
+        .iter()
+        .find(|agent| agent.alive)
+        .expect("agent should exist");
+
+    assert_eq!((agent.pos.row, agent.pos.col), (2, 2));
+}

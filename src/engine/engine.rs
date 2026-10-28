@@ -213,14 +213,14 @@ impl Engine {
                 continue;
             }
 
+            let Some(agent) = self.world.agents.get(agent_id) else {
+                continue;
+            };
             let mut totals: HashMap<String, i32> = HashMap::new();
             for sensor in &species.sensors {
                 for term in &sensor.terms {
-                    let field_value = self
-                        .fields
-                        .get(&term.field_name)
-                        .map(|field| field.get(pos))
-                        .unwrap_or(0);
+                    let field_value =
+                        self.field_value_for_agent(agent, species, &term.field_name, pos);
                     let contribution = (field_value as f32 * term.weight).round() as i32;
                     *totals.entry(sensor.name.clone()).or_insert(0) += contribution;
                 }
@@ -260,11 +260,10 @@ impl Engine {
             if !agent.alive {
                 continue;
             }
-            let pos = agent.pos;
             let Some(species) = self.species_defs.get(agent.species_id) else {
                 continue;
             };
-            if let Some(target) = self.best_neighbor(pos, species) {
+            if let Some(target) = self.best_neighbor_for(agent, species, false) {
                 self.world.move_agent(agent_id, target);
             }
             self.absorb_adjacent(agent_id);
@@ -327,8 +326,14 @@ impl Engine {
         }
     }
 
-    fn best_neighbor(&self, pos: Position, species: &SpeciesDef) -> Option<Position> {
-        let neighbors: Vec<Position> = pos
+    fn best_neighbor_for(
+        &self,
+        agent: &Agent,
+        species: &SpeciesDef,
+        allow_equal: bool,
+    ) -> Option<Position> {
+        let neighbors: Vec<Position> = agent
+            .pos
             .neighbors8(self.world.rows, self.world.cols)
             .into_iter()
             .filter(|neighbor| self.world.is_position_free(neighbor))
@@ -338,11 +343,17 @@ impl Engine {
             return None;
         }
 
+        if species.sensors.is_empty() {
+            let index = (rand::random::<f32>() * neighbors.len() as f32) as usize;
+            return neighbors.get(index.min(neighbors.len() - 1)).copied();
+        }
+
+        let current_score = self.sensor_score_for_agent(agent, species, agent.pos);
         let mut best_score = i32::MIN;
         let mut best_positions = Vec::new();
 
         for neighbor in neighbors {
-            let score = self.sensor_score(species, neighbor);
+            let score = self.sensor_score_for_agent(agent, species, neighbor);
             match score.cmp(&best_score) {
                 Ordering::Greater => {
                     best_score = score;
@@ -354,25 +365,73 @@ impl Engine {
             }
         }
 
+        let improves = if allow_equal {
+            best_score >= current_score
+        } else {
+            best_score > current_score
+        };
+        if !improves {
+            return None;
+        }
+
         let index = (rand::random::<f32>() * best_positions.len() as f32) as usize;
         best_positions
             .get(index.min(best_positions.len() - 1))
             .copied()
     }
 
-    fn sensor_score(&self, species: &SpeciesDef, pos: Position) -> i32 {
+    fn sensor_score_for_agent(&self, agent: &Agent, species: &SpeciesDef, pos: Position) -> i32 {
         let mut score = 0;
         for sensor in &species.sensors {
             for term in &sensor.terms {
-                let value = self
-                    .fields
-                    .get(&term.field_name)
-                    .map(|field| field.get(pos))
-                    .unwrap_or(0);
+                let value = self.field_value_for_agent(agent, species, &term.field_name, pos);
                 score += (value as f32 * term.weight).round() as i32;
             }
         }
         score
+    }
+
+    fn field_value_for_agent(
+        &self,
+        agent: &Agent,
+        species: &SpeciesDef,
+        field_name: &str,
+        pos: Position,
+    ) -> i32 {
+        let mut value = self
+            .fields
+            .get(field_name)
+            .map(|field| field.get(pos))
+            .unwrap_or(0);
+
+        let Some(field_def) = species
+            .field_defs
+            .iter()
+            .find(|field| field.name == field_name)
+        else {
+            return value;
+        };
+        let Some(var_index) = species
+            .var_names
+            .iter()
+            .position(|name| name == &field_def.name)
+        else {
+            return value;
+        };
+
+        let var_value = agent.vars.get(var_index).copied().unwrap_or(0);
+        if var_value <= 0 {
+            return value;
+        }
+
+        let distance = pos
+            .row
+            .abs_diff(agent.pos.row)
+            .max(pos.col.abs_diff(agent.pos.col));
+        let step = field_def.step.abs().max(1);
+        let own = (var_value - distance as i32 * step).max(0);
+        value -= own;
+        value
     }
 
     fn apply_births(&mut self) {
@@ -395,6 +454,9 @@ impl Engine {
             let Some(species) = self.species_defs.get(agent.species_id).cloned() else {
                 continue;
             };
+            if species.kind == SpeciesKind::Mineral {
+                continue;
+            }
             let Some(rule) = species
                 .birth_rules
                 .iter()
@@ -403,7 +465,7 @@ impl Engine {
             else {
                 continue;
             };
-            let Some(target) = self.best_neighbor(agent.pos, &species) else {
+            let Some(target) = self.best_neighbor_for(agent, &species, true) else {
                 continue;
             };
             if self.spawn_species(&rule.child_status, target).is_none() {

@@ -48,9 +48,6 @@ impl Field {
 
         for dr in -delta..=delta {
             for dc in -delta..=delta {
-                if dr == 0 && dc == 0 {
-                    continue;
-                }
                 let rr = r0 + dr;
                 let cc = c0 + dc;
                 if rr < 0 || cc < 0 || rr >= self.rows as i32 || cc >= self.cols as i32 {
