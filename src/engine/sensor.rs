@@ -32,8 +32,9 @@ impl SensorDef {
                 let mut value = field.values[pos_index];
 
                 // retirer l’auto-contribution si nécessaire
-                if let Some(&(ref fname, sub)) =
-                    self_contrib.iter().find(|(fname, _)| fname == &term.field_name)
+                if let Some(&(ref fname, sub)) = self_contrib
+                    .iter()
+                    .find(|(fname, _)| fname == &term.field_name)
                 {
                     if fname == &term.field_name {
                         value -= sub;

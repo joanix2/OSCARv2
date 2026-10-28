@@ -1,10 +1,10 @@
 /// Utilitaires de gestion des couleurs pour OSCARv2
-/// 
+///
 /// Ce module centralise toutes les fonctionnalités liées aux couleurs :
 /// - Conversion entre formats (ARGB, RGB, hex, nommées)
 /// - Manipulation de couleurs (mélange, éclaircissement, etc.)
 /// - Constantes de couleurs prédéfinies
-
+///
 /// Convertit une couleur u32 ARGB en u32 RGB pour minifb
 pub fn argb_to_rgb(argb: u32) -> u32 {
     argb & 0x00FFFFFF // Retire le canal alpha
@@ -12,10 +12,9 @@ pub fn argb_to_rgb(argb: u32) -> u32 {
 
 /// Convertit une chaîne couleur HTML hex ou nommée en u32 RGB
 pub fn hex_to_rgb(hex: &str) -> u32 {
-    if hex.starts_with('#') {
-        u32::from_str_radix(&hex[1..], 16).unwrap_or(GRAY)
-    } else {
-        named_color_to_rgb(hex)
+    match hex.strip_prefix('#') {
+        Some(value) => u32::from_str_radix(value, 16).unwrap_or(GRAY),
+        None => named_color_to_rgb(hex),
     }
 }
 
@@ -77,19 +76,19 @@ pub const TRACE_COLOR: u32 = RED;
 pub fn blend_colors(color1: u32, color2: u32, ratio: f32) -> u32 {
     let ratio = ratio.clamp(0.0, 1.0);
     let inv_ratio = 1.0 - ratio;
-    
+
     let r1 = ((color1 >> 16) & 0xFF) as f32;
     let g1 = ((color1 >> 8) & 0xFF) as f32;
     let b1 = (color1 & 0xFF) as f32;
-    
+
     let r2 = ((color2 >> 16) & 0xFF) as f32;
     let g2 = ((color2 >> 8) & 0xFF) as f32;
     let b2 = (color2 & 0xFF) as f32;
-    
+
     let r = (r1 * inv_ratio + r2 * ratio).round() as u32;
     let g = (g1 * inv_ratio + g2 * ratio).round() as u32;
     let b = (b1 * inv_ratio + b2 * ratio).round() as u32;
-    
+
     (r << 16) | (g << 8) | b
 }
 
@@ -118,11 +117,11 @@ pub fn rgb_to_hsv(rgb: u32) -> (f32, f32, f32) {
     let r = ((rgb >> 16) & 0xFF) as f32 / 255.0;
     let g = ((rgb >> 8) & 0xFF) as f32 / 255.0;
     let b = (rgb & 0xFF) as f32 / 255.0;
-    
+
     let max = r.max(g.max(b));
     let min = r.min(g.min(b));
     let delta = max - min;
-    
+
     // Hue
     let h = if delta == 0.0 {
         0.0
@@ -133,13 +132,13 @@ pub fn rgb_to_hsv(rgb: u32) -> (f32, f32, f32) {
     } else {
         60.0 * ((r - g) / delta + 4.0)
     };
-    
+
     // Saturation
     let s = if max == 0.0 { 0.0 } else { delta / max };
-    
+
     // Value
     let v = max;
-    
+
     (h, s, v)
 }
 
@@ -148,7 +147,7 @@ pub fn hsv_to_rgb(h: f32, s: f32, v: f32) -> u32 {
     let c = v * s;
     let x = c * (1.0 - ((h / 60.0) % 2.0 - 1.0).abs());
     let m = v - c;
-    
+
     let (r_prime, g_prime, b_prime) = match h as i32 / 60 {
         0 => (c, x, 0.0),
         1 => (x, c, 0.0),
@@ -158,11 +157,11 @@ pub fn hsv_to_rgb(h: f32, s: f32, v: f32) -> u32 {
         5 => (c, 0.0, x),
         _ => (0.0, 0.0, 0.0),
     };
-    
+
     let r = ((r_prime + m) * 255.0) as u32;
     let g = ((g_prime + m) * 255.0) as u32;
     let b = ((b_prime + m) * 255.0) as u32;
-    
+
     (r << 16) | (g << 8) | b
 }
 
@@ -170,12 +169,12 @@ pub fn hsv_to_rgb(h: f32, s: f32, v: f32) -> u32 {
 pub fn generate_harmony_palette(base_color: u32, count: usize) -> Vec<u32> {
     let (h, s, v) = rgb_to_hsv(base_color);
     let mut palette = Vec::new();
-    
+
     for i in 0..count {
         let new_h = (h + (360.0 / count as f32) * i as f32) % 360.0;
         palette.push(hsv_to_rgb(new_h, s, v));
     }
-    
+
     palette
 }
 

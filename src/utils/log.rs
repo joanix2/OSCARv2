@@ -1,12 +1,12 @@
 /// Système de logging pour OSCARv2
-/// 
+///
 /// Ce module fournit des fonctionnalités de logging structurées pour le simulateur :
 /// - Niveaux de log configurables (Debug, Info, Warning, Error)
 /// - Formatage cohérent des messages
 /// - Support pour les statistiques de simulation
 /// - Logging conditionnel selon le niveau de verbosité
-
 use std::fmt;
+use std::sync::OnceLock;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Niveaux de log disponibles
@@ -44,10 +44,10 @@ impl LogLevel {
     /// Retourne la couleur ANSI pour le terminal
     pub fn color_code(&self) -> &'static str {
         match self {
-            LogLevel::Debug => "\x1b[36m",    // Cyan
-            LogLevel::Info => "\x1b[32m",     // Vert
-            LogLevel::Warning => "\x1b[33m",  // Jaune
-            LogLevel::Error => "\x1b[31m",    // Rouge
+            LogLevel::Debug => "\x1b[36m",   // Cyan
+            LogLevel::Info => "\x1b[32m",    // Vert
+            LogLevel::Warning => "\x1b[33m", // Jaune
+            LogLevel::Error => "\x1b[31m",   // Rouge
         }
     }
 }
@@ -134,9 +134,9 @@ impl Logger {
         } else {
             level_str
         };
-        
+
         parts.push(format!("[{}]", formatted_level));
-        
+
         // Message
         parts.push(message.to_string());
 
@@ -145,20 +145,16 @@ impl Logger {
 }
 
 // Instance globale du logger
-static mut GLOBAL_LOGGER: Option<Logger> = None;
+static GLOBAL_LOGGER: OnceLock<Logger> = OnceLock::new();
 
 /// Initialise le logger global
 pub fn init_logger(logger: Logger) {
-    unsafe {
-        GLOBAL_LOGGER = Some(logger);
-    }
+    let _ = GLOBAL_LOGGER.set(logger);
 }
 
 /// Récupère le logger global ou crée un logger par défaut
 fn get_logger() -> &'static Logger {
-    unsafe {
-        GLOBAL_LOGGER.get_or_insert_with(Logger::default)
-    }
+    GLOBAL_LOGGER.get_or_init(Logger::default)
 }
 
 /// Macros pour simplifier l'utilisation
@@ -241,22 +237,20 @@ pub mod performance {
         let start = Instant::now();
         let result = func();
         let duration = start.elapsed();
-        
+
         debug(&format!(
             "Performance: {} exécuté en {:.2}ms",
-            name, duration.as_secs_f64() * 1000.0
+            name,
+            duration.as_secs_f64() * 1000.0
         ));
-        
+
         result
     }
 
     /// Log l'utilisation mémoire approximative
     pub fn memory_usage(description: &str, bytes: usize) {
         let mb = bytes as f64 / (1024.0 * 1024.0);
-        debug(&format!(
-            "Mémoire: {} utilise {:.2} MB",
-            description, mb
-        ));
+        debug(&format!("Mémoire: {} utilise {:.2} MB", description, mb));
     }
 }
 
@@ -267,11 +261,11 @@ mod tests {
     #[test]
     fn test_log_levels() {
         let logger = Logger::new().with_level(LogLevel::Warning);
-        
+
         // Ces messages ne devraient pas apparaître (niveau trop bas)
         logger.log(LogLevel::Debug, "Message debug");
         logger.log(LogLevel::Info, "Message info");
-        
+
         // Ces messages devraient apparaître
         logger.log(LogLevel::Warning, "Message warning");
         logger.log(LogLevel::Error, "Message error");
@@ -283,7 +277,7 @@ mod tests {
             .with_colors(false)
             .with_emojis(false)
             .with_timestamp(false);
-        
+
         let formatted = logger.format_message(LogLevel::Info, "Test message");
         assert!(formatted.contains("INFO"));
         assert!(formatted.contains("Test message"));

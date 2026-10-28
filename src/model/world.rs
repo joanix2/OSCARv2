@@ -1,17 +1,11 @@
-use crate::model::position::Position;
 use crate::model::agent::{Agent, AgentId, SpeciesKind};
+use crate::model::position::Position;
 
 /// Une cellule de la grille
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct Cell {
     pub agent: Option<usize>, // référence vers un agent (index dans Vec<Agent>)
     pub trace: bool,
-}
-
-impl Default for Cell {
-    fn default() -> Self {
-        Self { agent: None, trace: false }
-    }
 }
 
 /// Le monde est une grille rows x cols de cellules
