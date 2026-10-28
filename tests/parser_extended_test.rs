@@ -1,5 +1,5 @@
-use OSCARv2::dsl::parser::parse_file;
 use OSCARv2::dsl::ast::{SpeciesKind, Value};
+use OSCARv2::dsl::parser::parse_file;
 
 #[test]
 fn test_parse_world_command() {
@@ -69,18 +69,18 @@ fn test_parse_species_with_var() {
         mineral fire F00
         var hot
         var flame";
-    
+
     let result = parse_file(input).expect("Failed to parse species with vars");
 
     assert_eq!(result.species.len(), 1);
     let species = &result.species[0];
     assert_eq!(species.name, "fire");
     assert_eq!(species.vars.len(), 2);
-    
+
     assert_eq!(species.vars[0].name, "hot");
     assert!(matches!(species.vars[0].init_value, Value::Int(0)));
     assert_eq!(species.vars[0].timestep, 0);
-    
+
     assert_eq!(species.vars[1].name, "flame");
     assert!(matches!(species.vars[1].init_value, Value::Int(0)));
     assert_eq!(species.vars[1].timestep, 0);
@@ -91,14 +91,14 @@ fn test_parse_species_with_status() {
     let input = r"
         mineral ash 777
         status void";
-    
+
     let result = parse_file(input).expect("Failed to parse species with status");
 
     assert_eq!(result.species.len(), 1);
     let species = &result.species[0];
     assert_eq!(species.name, "ash");
     assert_eq!(species.statuses.len(), 1);
-    
+
     assert_eq!(species.statuses[0].new_status, "void");
     assert!(species.statuses[0].variable.is_none());
     assert!(species.statuses[0].less_than.is_none());
@@ -118,23 +118,23 @@ fn test_parse_multiple_species() {
         
         animal sheep FF5
         var energy";
-    
+
     let result = parse_file(input).expect("Failed to parse multiple species");
 
     assert_eq!(result.species.len(), 3);
-    
+
     // First species (tree)
     assert_eq!(result.species[0].name, "tree");
     assert!(matches!(result.species[0].kind, SpeciesKind::Mineral));
     assert_eq!(result.species[0].vars.len(), 1);
     assert_eq!(result.species[0].statuses.len(), 1);
-    
+
     // Second species (fire)
     assert_eq!(result.species[1].name, "fire");
     assert!(matches!(result.species[1].kind, SpeciesKind::Mineral));
     assert_eq!(result.species[1].vars.len(), 1);
     assert_eq!(result.species[1].statuses.len(), 1);
-    
+
     // Third species (sheep)
     assert_eq!(result.species[2].name, "sheep");
     assert!(matches!(result.species[2].kind, SpeciesKind::Animal));
@@ -153,7 +153,7 @@ fn test_parse_world_and_species() {
         
         mineral fire F00
         status ash";
-    
+
     let result = parse_file(input).expect("Failed to parse world and species");
 
     // Check world
@@ -162,7 +162,7 @@ fn test_parse_world_and_species() {
     assert_eq!(world.cols, 32);
     assert_eq!(world.rows, 32);
     assert_eq!(world.color, "FFF");
-    
+
     // Check species
     assert_eq!(result.species.len(), 2);
     assert_eq!(result.species[0].name, "tree");
@@ -174,12 +174,12 @@ fn test_parse_agent_simple() {
     let input = r"
         mineral tree 0F0
         agent tree (5,5)";
-    
+
     let result = parse_file(input).expect("Failed to parse agent");
 
     assert_eq!(result.species.len(), 1);
     assert_eq!(result.agents.len(), 1);
-    
+
     let agent = &result.agents[0];
     assert_eq!(agent.species_pattern, "tree");
     assert_eq!(agent.positions.len(), 1);
@@ -191,7 +191,7 @@ fn test_parse_agent_multiple_positions() {
     let input = r"
         mineral fire F00
         agent fire (5,0) (6,0) (30,30)";
-    
+
     let result = parse_file(input).expect("Failed to parse agent with multiple positions");
 
     assert_eq!(result.agents.len(), 1);
@@ -209,7 +209,7 @@ fn test_parse_complex_species_pattern() {
         mineral void 000
         mineral tree 0F0
         agent (void,tree,tree,tree) (0:32,0:32)";
-    
+
     let result = parse_file(input).expect("Failed to parse complex species pattern");
 
     assert_eq!(result.agents.len(), 1);
@@ -232,17 +232,17 @@ fn test_parse_with_comments() {
         
         # Initial configuration
         agent tree (8,8)   # Single tree in center";
-    
+
     let result = parse_file(input).expect("Failed to parse with comments");
 
     assert!(result.world.is_some());
     assert_eq!(result.species.len(), 1);
     assert_eq!(result.agents.len(), 1);
-    
+
     let world = result.world.unwrap();
     assert_eq!(world.cols, 16);
     assert_eq!(world.rows, 16);
-    
+
     let species = &result.species[0];
     assert_eq!(species.name, "tree");
     assert_eq!(species.vars.len(), 1);
@@ -265,7 +265,7 @@ fn test_parse_comments_only() {
         # This is just a comment
         # Another comment
         # Yet another comment";
-    
+
     let result = parse_file(input).expect("Failed to parse comments only");
 
     assert!(result.world.is_none());
@@ -291,7 +291,7 @@ fn test_parse_case_sensitivity() {
         MINERAL Tree 0F0
         VAR hot
         STATUS fire";
-    
+
     let result = parse_file(input).expect("Failed to parse case sensitive");
 
     // Le parser actuel ne gère probablement que les mots-clés en minuscules
