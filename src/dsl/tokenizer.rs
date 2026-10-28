@@ -12,21 +12,44 @@ pub fn tokenize(input: &str) -> Result<Vec<Token>> {
         }
 
         for word in line.split_whitespace() {
+            let line = line_num + 1;
             let token = match word.parse::<i32>() {
-                Ok(n) => Token { kind: TokenKind::Number(n), line: line_num + 1 },
+                Ok(n) => Token {
+                    kind: TokenKind::Number(n),
+                    line,
+                    raw: word.to_string(),
+                },
                 Err(_) => match word.parse::<f32>() {
-                    Ok(f) => Token { kind: TokenKind::Float(f), line: line_num + 1 },
-                    Err(_) => if word == "<" || word == ">" || word == ":" {
-                        Token { kind: TokenKind::Symbol(word.to_string()), line: line_num + 1 }
-                    } else {
-                        Token { kind: TokenKind::Ident(word.to_string()), line: line_num + 1 }
+                    Ok(f) => Token {
+                        kind: TokenKind::Float(f),
+                        line,
+                        raw: word.to_string(),
+                    },
+                    Err(_) => {
+                        if word == "<" || word == ">" || word == ":" {
+                            Token {
+                                kind: TokenKind::Symbol(word.to_string()),
+                                line,
+                                raw: word.to_string(),
+                            }
+                        } else {
+                            Token {
+                                kind: TokenKind::Ident(word.to_string()),
+                                line,
+                                raw: word.to_string(),
+                            }
+                        }
                     }
-                }
+                },
             };
             tokens.push(token);
         }
 
-        tokens.push(Token { kind: TokenKind::Eol, line: line_num + 1 });
+        tokens.push(Token {
+            kind: TokenKind::Eol,
+            line: line_num + 1,
+            raw: String::new(),
+        });
     }
 
     Ok(tokens)

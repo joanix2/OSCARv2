@@ -11,4 +11,5 @@ pub enum TokenKind {
 pub struct Token {
     pub kind: TokenKind,
     pub line: usize,
+    pub raw: String,
 }

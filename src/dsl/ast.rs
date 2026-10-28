@@ -19,10 +19,20 @@ pub struct VarDef {
     pub timestep: i32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Value {
     Int(i32),
     Str(String),
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CompareOp {
+    Lt,
+    Gt,
+    Le,
+    Ge,
+    Eq,
+    Ne,
 }
 
 #[derive(Debug, Clone)]
@@ -30,6 +40,7 @@ pub struct StatusRule {
     pub variable: Option<String>,
     pub less_than: Option<bool>,
     pub threshold: Option<i32>,
+    pub operator: Option<CompareOp>,
     pub new_status: String,
 }
 
@@ -38,6 +49,7 @@ pub struct BirthRule {
     pub variable: Option<String>,
     pub less_than: Option<bool>,
     pub threshold: Option<i32>,
+    pub operator: Option<CompareOp>,
     pub child_status: String,
 }
 
