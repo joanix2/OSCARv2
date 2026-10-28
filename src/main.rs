@@ -64,7 +64,7 @@ impl LevelSession {
             alive
         );
 
-        let mut display = DisplaySystem::new_with_title(&engine.world, 16, 1200, 900, &title)
+        let mut display = DisplaySystem::new_with_title(&engine.world, 16, 1000, 800, &title)
             .map_err(|error| anyhow::anyhow!(error.to_string()))?;
         display.background_color = parse_level_color(&world_color);
 
